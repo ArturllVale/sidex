@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 async function boot() {
-	// Import the web workbench barrel in stages so partial failures are isolated.
 	const stages = [
 		['common',       () => import('./vs/workbench/workbench.common.main.js')],
 		['web.main',     () => import('./vs/workbench/browser/web.main.js')],
@@ -26,32 +25,14 @@ async function boot() {
 		await new Promise<void>(r => window.addEventListener('DOMContentLoaded', () => r()));
 	}
 
-	// Check if a folder was passed via URL params (from Tauri folder open)
 	const urlParams = new URLSearchParams(window.location.search);
 	const folderParam = urlParams.get('folder');
 
-	// Clear stale workbench state when folder changes to avoid editor restore errors
-	if (folderParam) {
-		const lastFolder = sessionStorage.getItem('sidex-last-folder');
-		if (lastFolder !== folderParam) {
-			sessionStorage.setItem('sidex-last-folder', folderParam);
-			// Clear IndexedDB workbench state to prevent stale editor tab errors
-			try {
-				const dbs = await indexedDB.databases();
-				for (const db of dbs) {
-					if (db.name && (db.name.includes('vscode-web-state') || db.name.includes('vscode-userdata'))) {
-						indexedDB.deleteDatabase(db.name);
-					}
-				}
-			} catch { /* ignore */ }
-		}
-	}
-
 	const options: any = {
 		windowIndicator: {
-			label: 'SideX',
+			label: folderParam ? decodeURIComponent(folderParam.split('/').pop() || 'SideX') : 'SideX',
 			tooltip: 'SideX — Tauri Code Editor',
-			command: undefined as any,
+			command: undefined,
 		},
 		productConfiguration: {
 			nameShort: 'SideX',
@@ -64,20 +45,32 @@ async function boot() {
 			enabled: false,
 		},
 		additionalBuiltinExtensions: [],
+		// Don't open Getting Started or any default editors
+		welcomeBanner: undefined,
 		defaultLayout: {
 			editors: [],
+			layout: { editors: {} },
+		},
+		// Disable features that call home to Microsoft
+		configurationDefaults: {
+			'workbench.startupEditor': 'none',
+			'workbench.enableExperiments': false,
+			'telemetry.telemetryLevel': 'off',
+			'update.mode': 'none',
+			'extensions.autoUpdate': false,
+			'extensions.autoCheckUpdates': false,
+			'workbench.settings.enableNaturalLanguageSearch': false,
 		},
 	};
 
 	if (folderParam) {
-		// Open with a folder workspace
 		const { URI } = await import('./vs/base/common/uri.js');
 		options.folderUri = URI.parse(folderParam);
 	}
 
 	create(document.body, options);
 
-	console.log('[SideX] Workbench created successfully' + (folderParam ? ` (folder: ${folderParam})` : ''));
+	console.log('[SideX] Workbench created' + (folderParam ? ` (folder: ${folderParam})` : ''));
 }
 
 boot().catch((err) => {
