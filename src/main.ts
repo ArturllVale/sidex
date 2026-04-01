@@ -155,10 +155,14 @@ function setupMenuActions() {
 		'run_build_task': 'workbench.action.tasks.build',
 		// Help
 		'keyboard_shortcuts': 'workbench.action.keybindingsEditor',
-		'toggle_dev_tools': 'workbench.action.toggleDevTools',
 	};
 
 	(window as any).__sidex_menu_action = async (menuId: string) => {
+		if (menuId === 'toggle_dev_tools') {
+			console.log('[SideX] Dev tools: use Cmd+Alt+I (handled natively by Tauri)');
+			return;
+		}
+
 		const commandId = menuToCommand[menuId];
 		if (!commandId) {
 			console.warn(`[SideX] Unknown menu action: ${menuId}`);

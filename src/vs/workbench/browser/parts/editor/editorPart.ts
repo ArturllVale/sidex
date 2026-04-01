@@ -1220,8 +1220,26 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 				// Log error
 				onUnexpectedError(new Error(`Error restoring editor grid widget: ${error} (with state: ${JSON.stringify(state)})`));
 
-				// Clear any state we have from the failing restore
-				this.disposeGroups();
+				// Clear any state we have from the failing restore.
+				// Wrap in try-catch because partially-constructed group views
+				// may lack DOM elements (e.g. tabsAndActionsContainer) and
+				// disposing them can throw as well.
+				try {
+					this.disposeGroups();
+				} catch (disposeError) {
+					onUnexpectedError(new Error(`Error disposing editor groups after failed restore: ${disposeError}`));
+					this.groupViews.clear();
+					this.mostRecentActiveGroups = [];
+				}
+
+				// Also dispose any partially-created grid widget that was
+				// never assigned to this.gridWidget
+				if (this.gridWidget) {
+					try {
+						this.gridWidget.dispose();
+					} catch (_) { /* best effort */ }
+					this.gridWidget = undefined!;
+				}
 
 				return false; // failure
 			}

@@ -68,7 +68,11 @@ export class TauriFileSystemProvider extends Disposable implements IFileSystemPr
 		try {
 			raw = await invoke<TauriFileStat>('stat', { path });
 		} catch (err) {
-			console.warn('[SideX-FS] stat failed:', path, err);
+			const msg = typeof err === 'string' ? err : (err instanceof Error ? err.message : String(err));
+			const isNotFound = /no such file|not found|ENOENT/i.test(msg);
+			if (!isNotFound) {
+				console.debug('[SideX-FS] stat failed:', path, err);
+			}
 			throw TauriFileSystemProvider.toError(err, resource, FileSystemProviderErrorCode.FileNotFound);
 		}
 
@@ -96,7 +100,11 @@ export class TauriFileSystemProvider extends Disposable implements IFileSystemPr
 		try {
 			entries = await invoke<TauriDirEntry[]>('read_dir', { path });
 		} catch (err) {
-			console.warn('[SideX-FS] readdir failed:', path, err);
+			const msg = typeof err === 'string' ? err : (err instanceof Error ? err.message : String(err));
+			const isNotFound = /no such file|not found|ENOENT/i.test(msg);
+			if (!isNotFound) {
+				console.debug('[SideX-FS] readdir failed:', path, err);
+			}
 			throw TauriFileSystemProvider.toError(err, resource, FileSystemProviderErrorCode.FileNotFound);
 		}
 
