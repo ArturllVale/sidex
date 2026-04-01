@@ -708,8 +708,17 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 			}
 		}
 
-		if (!this.extensionManifestPropertiesService.canExecuteOnWeb(manifest)) {
+		const isSidexTauri = (globalThis as any).__SIDEX_TAURI__ === true;
+		if (!isSidexTauri && !this.extensionManifestPropertiesService.canExecuteOnWeb(manifest)) {
 			throw new Error(localize('not a web extension', "Cannot add '{0}' because this extension is not a web extension.", manifest.displayName || manifest.name));
+		}
+
+		if (isSidexTauri && !this.extensionManifestPropertiesService.canExecuteOnWeb(manifest)) {
+			if (!manifest.browser && !manifest.main) {
+				manifest.browser = '';
+			} else if (!manifest.browser && manifest.main) {
+				manifest.browser = manifest.main;
+			}
 		}
 
 		if (fallbackPackageNLSUri === undefined) {
@@ -792,7 +801,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 			readmeUrl: webExtension.readmeUri,
 			changelogUrl: webExtension.changelogUri,
 			metadata: webExtension.metadata,
-			targetPlatform: TargetPlatform.WEB,
+			targetPlatform: (globalThis as any).__SIDEX_TAURI__ === true ? TargetPlatform.UNDEFINED : TargetPlatform.WEB,
 			validations,
 			isValid,
 			preRelease: !!webExtension.metadata?.preRelease,
