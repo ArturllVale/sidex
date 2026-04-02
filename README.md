@@ -78,6 +78,13 @@ npm run build
 npx tauri build
 ```
 
+### Troubleshooting
+
+**Linux blank screen:** If you get a blank/white screen on Linux, run with:
+```bash
+WEBKIT_DISABLE_DMABUF_RENDERER=1 npm run tauri dev
+```
+
 ## Architecture
 
 SideX preserves VSCode's layered architecture and replaces the Electron runtime with Tauri:
@@ -177,4 +184,4 @@ This project was released early specifically so the community can help build it 
 
 ## License
 
-MIT
+MIT - This project is a port of [Visual Studio Code (Code - OSS)](https://github.com/microsoft/vscode), which is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
