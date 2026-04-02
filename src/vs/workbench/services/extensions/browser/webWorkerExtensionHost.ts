@@ -93,11 +93,6 @@ export class WebWorkerExtensionHost extends Disposable implements IExtensionHost
 
 		const iframeModulePath: AppResourcePath = `vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html`;
 		if (platform.isWeb) {
-
-			if ((globalThis as any).__SIDEX_TAURI__) {
-				throw new Error('Web worker extension host disabled in SideX — extensions run via built-in host');
-			}
-
 			const webEndpointUrlTemplate = this._productService.webEndpointUrlTemplate;
 			const commit = this._productService.commit;
 			const quality = this._productService.quality;

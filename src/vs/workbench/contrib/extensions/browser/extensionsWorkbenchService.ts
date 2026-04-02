@@ -1695,6 +1695,10 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 	}
 
 	private getRuntimeState(extension: IExtension): ExtensionRuntimeState | undefined {
+		if ((globalThis as any).__SIDEX_TAURI__) {
+			return undefined;
+		}
+
 		const isUninstalled = extension.state === ExtensionState.Uninstalled;
 		const runningExtension = this.extensionService.extensions.find(e => areSameExtensions({ id: e.identifier.value }, extension.identifier));
 		const reloadAction = this.extensionManagementServerService.remoteExtensionManagementServer ? ExtensionRuntimeActionType.ReloadWindow : ExtensionRuntimeActionType.RestartExtensions;
